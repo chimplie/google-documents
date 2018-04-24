@@ -1,8 +1,8 @@
 # No any database operations - so we need SimpleTestCase
 from unittest import TestCase
 
-from google_docs.entities.file import GoogleDriveFile
-from google_docs.entities.folder import GoogleDriveFolder
+from google_documents.entities.file import GoogleDriveFile
+from google_documents.entities.folder import GoogleDriveFolder
 
 TEST_FOLDER_ID = "1JfrW_3hV3Sb7rWwtWUuOHddQcDiyQpBY"
 TEST_DOCUMENT_ID = "1IoZdqldidkXHtXDxoURmuzmnxwaiCBZx9q1a9chnHVM"

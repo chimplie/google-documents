@@ -1,7 +1,7 @@
 from googleapiclient.http import MediaFileUpload
 
-from google_docs.entities.folder import GoogleDriveFolder
-from google_docs.service import drive_service
+from google_documents.entities.folder import GoogleDriveFolder
+from google_documents.service import drive_service
 
 DOCX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 
