@@ -1,3 +1,4 @@
+import googleapiclient
 from googleapiclient.http import MediaFileUpload
 
 from google_documents.entities.folder import GoogleDriveFolder
@@ -44,10 +45,13 @@ class GoogleDriveFile:
 
     @classmethod
     def get(cls, id):
-        item = drive_service.files().get(
-            fileId=id).execute()
+        try:
+            item = drive_service.files().get(
+                fileId=id).execute()
 
-        return cls.from_item(item)
+            return cls.from_item(item)
+        except googleapiclient.errors.HttpError:
+            return None
 
     def copy(self, file_name: str):
         """
