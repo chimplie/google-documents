@@ -1,10 +1,10 @@
 import googleapiclient
 from googleapiclient.http import MediaFileUpload
 
-from google_documents.entities.folder import GoogleDriveFolder
 from google_documents.service import drive_service
 
 DOCX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+GOOGLE_DRIVE_FOLDER_MIME_TYPE = 'application/vnd.google-apps.folder'
 
 
 class GoogleDriveFile:
@@ -73,26 +73,7 @@ class GoogleDriveFile:
             fileId=self.id
         )
 
-    def export(self, file_name, mime_type=DOCX_MIME_TYPE):
-        """
-        Exports content of the file to format specified in the MimeType and writes it to the File
-        """
-        export_bytes = drive_service.files().export(
-            fileId=self.id, mimeType=mime_type
-        ).execute()
-
-        open(file_name, "wb+").write(export_bytes)
-
-    def update(self, file_name, mime_type=DOCX_MIME_TYPE):
-        # Making media body for the request
-        media_body = MediaFileUpload(file_name, mimetype=mime_type, resumable=True)
-
-        drive_service.files().update(
-            fileId=self.id,
-            media_body=media_body
-        ).execute()
-
-    def put_to_folder(self, folder: GoogleDriveFolder):
+    def put_to_folder(self, folder):
         """
         Puts the file into folder
         """
@@ -101,3 +82,11 @@ class GoogleDriveFile:
             fileId=self.id,
             addParents=folder.id,
             fields='id, parents').execute()
+
+
+class GoogleDriveFolder(GoogleDriveFile):
+    def __init__(self, id, *args, **kwargs):
+        super().__init__(id, mime_type='', *args, **kwargs)
+
+    def __contains__(self, item):
+        return self in item.parents
