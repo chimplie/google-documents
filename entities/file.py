@@ -1,10 +1,7 @@
 import googleapiclient
-from googleapiclient.http import MediaFileUpload
 
 from google_documents.service import drive_service
-
-DOCX_MIME_TYPE = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-GOOGLE_DRIVE_FOLDER_MIME_TYPE = 'application/vnd.google-apps.folder'
+from google_documents.settings import MIME_TYPES
 
 
 class GoogleDriveFile:
@@ -86,7 +83,7 @@ class GoogleDriveFile:
 
 class GoogleDriveFolder(GoogleDriveFile):
     def __init__(self, id, *args, **kwargs):
-        super().__init__(id, mime_type='', *args, **kwargs)
+        super().__init__(id, mime_type=MIME_TYPES['folder'], *args, **kwargs)
 
     def __contains__(self, item):
         return self in item.parents
