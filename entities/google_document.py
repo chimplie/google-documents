@@ -5,7 +5,7 @@ from google_documents.service import drive_service
 from google_documents.settings import MIME_TYPES
 
 
-class GoogleDocument(GoogleDriveFile):
+class GoogleDriveDocument(GoogleDriveFile):
     def export(self, file_name, mime_type=MIME_TYPES['docx']):
         """
         Exports content of the file to format specified in the MimeType and writes it to the File
