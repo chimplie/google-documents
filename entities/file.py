@@ -1,4 +1,5 @@
 import googleapiclient
+from googleapiclient.http import MediaFileUpload
 
 from google_documents.service import drive_service
 from google_documents.settings import MIME_TYPES
@@ -10,6 +11,9 @@ class GoogleDriveFile:
 
     def __eq__(self, other):
         return self.id == other.id
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__}: {self.id} - {self.name}>"
 
     @property
     def parents(self):
@@ -82,8 +86,63 @@ class GoogleDriveFile:
 
 
 class GoogleDriveFolder(GoogleDriveFile):
-    def __init__(self, id, *args, **kwargs):
-        super().__init__(id, mime_type=MIME_TYPES['folder'], *args, **kwargs)
-
     def __contains__(self, item):
         return self in item.parents
+
+    @property
+    def children(self):
+        children_items = drive_service.files().list(
+          q=f"\"{self.id}\" in parents").execute()['files']
+
+        print(children_items)
+
+        for item in children_items:
+            yield GoogleDriveFilesFactory.from_item(item)
+
+
+class GoogleDriveDocument(GoogleDriveFile):
+    def export(self, file_name, mime_type=MIME_TYPES['docx']):
+        """
+        Exports content of the file to format specified in the MimeType and writes it to the File
+        """
+        export_bytes = drive_service.files().export(
+            fileId=self.id, mimeType=mime_type
+        ).execute()
+
+        open(file_name, "wb+").write(export_bytes)
+
+    def update(self, file_name, mime_type=MIME_TYPES['docx']):
+        # Making media body for the request
+        media_body = MediaFileUpload(file_name, mimetype=mime_type, resumable=True)
+
+        drive_service.files().update(
+            fileId=self.id,
+            media_body=media_body
+        ).execute()
+
+
+class GoogleDriveFilesFactory:
+    file_classes = {
+        MIME_TYPES['folder']: GoogleDriveFolder,
+        MIME_TYPES['document']: GoogleDriveDocument,
+    }
+
+    default_class = GoogleDriveFile
+
+    @classmethod
+    def get_file_class(cls, mime_type):
+        return cls.file_classes.get(mime_type) or cls.default_class
+
+    @classmethod
+    def from_item(cls, item):
+        """
+        Returns the respective object of Google Drive file,
+        depending on the item mime type
+        :return:
+        """
+        return cls.get_file_class(item.get('mimeType')).from_item(item)
+
+
+if __name__ == "__main__":
+    files = list(GoogleDriveFolder("0B2-fQsB7gAftTlU0Ui1RMkxoWkk").children)
+    print(files)
