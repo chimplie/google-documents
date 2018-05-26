@@ -141,8 +141,3 @@ class GoogleDriveFilesFactory:
         :return:
         """
         return cls.get_file_class(item.get('mimeType')).from_item(item)
-
-
-if __name__ == "__main__":
-    files = list(GoogleDriveFolder("0B2-fQsB7gAftTlU0Ui1RMkxoWkk").children)
-    print(files)
