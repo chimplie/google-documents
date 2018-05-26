@@ -134,7 +134,7 @@ class GoogleDriveFilesFactory:
         return cls.file_classes.get(mime_type) or cls.default_class
 
     @classmethod
-    def from_item(cls, item):
+    def from_item(cls, item) -> GoogleDriveFile:
         """
         Returns the respective object of Google Drive file,
         depending on the item mime type
