@@ -94,8 +94,6 @@ class GoogleDriveFolder(GoogleDriveFile):
         children_items = drive_service.files().list(
           q=f"\"{self.id}\" in parents").execute()['files']
 
-        print(children_items)
-
         for item in children_items:
             yield GoogleDriveFilesFactory.from_item(item)
 
