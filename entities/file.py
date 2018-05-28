@@ -94,8 +94,6 @@ class GoogleDriveFolder(GoogleDriveFile):
         children_items = drive_service.files().list(
           q=f"\"{self.id}\" in parents").execute()['files']
 
-        print(children_items)
-
         for item in children_items:
             yield GoogleDriveFilesFactory.from_item(item)
 
@@ -134,15 +132,10 @@ class GoogleDriveFilesFactory:
         return cls.file_classes.get(mime_type) or cls.default_class
 
     @classmethod
-    def from_item(cls, item):
+    def from_item(cls, item) -> GoogleDriveFile:
         """
         Returns the respective object of Google Drive file,
         depending on the item mime type
         :return:
         """
         return cls.get_file_class(item.get('mimeType')).from_item(item)
-
-
-if __name__ == "__main__":
-    files = list(GoogleDriveFolder("0B2-fQsB7gAftTlU0Ui1RMkxoWkk").children)
-    print(files)
