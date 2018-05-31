@@ -20,6 +20,14 @@ class FileTestCase(TestCase):
     because we need to setup order of tests running
     in test_all() method
     '''
+    def Test_init(self):
+        """
+        Checking that name and mime_type automatically assigned to the file
+        """
+        item = GoogleDriveFile._get_item(TEST_DOCUMENT_ID)
+
+        self.assertIsNotNone(self.file.name, item["name"])
+        self.assertIsNotNone(self.file.mime_type, item["mimeType"])
 
     def Test_copy(self):
         self.copy = self.file.copy("Test copy file name")
@@ -38,6 +46,9 @@ class FileTestCase(TestCase):
 
     def test_all(self):
         try:
+            # Testing correct initialization
+            self.Test_init()
+
             # Testing copying file
             self.Test_copy()
 

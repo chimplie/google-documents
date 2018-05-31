@@ -32,6 +32,12 @@ class GoogleDriveFile:
 
     def __init__(self, id, name=None, mime_type=None, *args, **kwargs):
         self.id = id
+
+        if not (name and mime_type):
+            item = self._get_item(id)
+            name = name or item["name"]
+            mime_type = mime_type or item["mimeType"]
+
         self.name = name
         self.mime_type = mime_type
 
@@ -44,11 +50,15 @@ class GoogleDriveFile:
             id=item["id"], name=item.get("name"), mime_type=item.get("mimeType")
         )
 
+    @staticmethod
+    def _get_item(id):
+        return drive_service.files().get(
+                fileId=id).execute()
+
     @classmethod
     def get(cls, id):
         try:
-            item = drive_service.files().get(
-                fileId=id).execute()
+            item = cls._get_item(id)
 
             return cls.from_item(item)
         except googleapiclient.errors.HttpError:
