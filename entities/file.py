@@ -107,6 +107,9 @@ class GoogleDriveFolder(GoogleDriveFile):
         for item in children_items:
             yield GoogleDriveFilesFactory.from_item(item)
 
+    def __str__(self):
+        return f"{self.name}"
+
 
 class GoogleDriveDocument(GoogleDriveFile):
     def export(self, file_name, mime_type=MIME_TYPES['docx']):
