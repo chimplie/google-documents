@@ -1,3 +1,5 @@
+import ssl
+
 import googleapiclient
 from googleapiclient.http import MediaFileUpload
 
@@ -34,9 +36,12 @@ class GoogleDriveFile:
         self.id = id
 
         if not (name and mime_type):
-            item = self._get_item(id)
-            name = name or item["name"]
-            mime_type = mime_type or item["mimeType"]
+            try:
+                item = self._get_item(id)
+                name = name or item["name"]
+                mime_type = mime_type or item["mimeType"]
+            except ssl.SSLError:
+                print("Failed to fetch Google Drive File item")
 
         self.name = name
         self.mime_type = mime_type
