@@ -105,6 +105,10 @@ class GoogleDriveFolder(GoogleDriveFile):
         return self in item.parents
 
     @property
+    def url(self):
+        return f"https://drive.google.com/drive/folders/{self.id}"
+
+    @property
     def children(self):
         children_items = drive_service.files().list(
           q=f"\"{self.id}\" in parents").execute()['files']
