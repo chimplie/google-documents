@@ -39,7 +39,7 @@ class FileTestCase(TestCase):
         # Checking file copy by id
         correct_copy = GoogleDriveFile.get(id=self.copy.id)
 
-        self.assertEqual(self.copye.id, correct_copy.id)
+        self.assertEqual(self.copy.id, correct_copy.id)
         self.assertEqual(self.copy.name, correct_copy.name)
 
     def Test_put_to_folder(self):
