@@ -35,13 +35,13 @@ class GoogleDriveFile:
     def __init__(self, id, name=None, mime_type=None, *args, **kwargs):
         self.id = id
 
-        if not (name and mime_type):
-            try:
-                item = self._get_item(id)
-                name = name or item["name"]
-                mime_type = mime_type or item["mimeType"]
-            except ssl.SSLError:
-                print("Failed to fetch Google Drive File item")
+        # if not (name and mime_type):
+        #     try:
+        #         item = self._get_item(id)
+        #         name = name or item["name"]
+        #         mime_type = mime_type or item["mimeType"]
+        #     except ssl.SSLError:
+        #         print("Failed to fetch Google Drive File item")
 
         self.name = name
         self.mime_type = mime_type
