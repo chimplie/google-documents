@@ -25,9 +25,6 @@ class FileTestCase(TestCase):
         """
         Checking that name and mime_type automatically assigned to the file
         """
-        logging.warning("Google Drive sucks, so we will skip some test stuff")
-        return
-
         item = GoogleDriveFile._get_item(TEST_DOCUMENT_ID)
 
         self.assertIsNotNone(self.file.name, item["name"])

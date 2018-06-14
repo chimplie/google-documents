@@ -1,9 +1,9 @@
-import ssl
+from datetime import datetime
 
 import googleapiclient
 from googleapiclient.http import MediaFileUpload
 
-from google_documents.service import drive_service
+from google_documents.service import get_drive_service
 from google_documents.settings import MIME_TYPES
 
 
@@ -21,7 +21,7 @@ class GoogleDriveFile:
     def parents(self):
         # TODO lazy loading of the all files attributes
 
-        response = drive_service.files().get(
+        response = get_drive_service().files().get(
             fileId=self.id, fields='parents'
         ).execute()
 
@@ -35,14 +35,21 @@ class GoogleDriveFile:
     def __init__(self, id, name=None, mime_type=None, *args, **kwargs):
         self.id = id
 
-        # if not (name and mime_type):
-        #     try:
-        #         item = self._get_item(id)
-        #         name = name or item["name"]
-        #         mime_type = mime_type or item["mimeType"]
-        #     except ssl.SSLError:
-        #         print("Failed to fetch Google Drive File item")
+        s = ''
+        s += "Checking file\n"
+        s += f"name: {name}\n"
+        s += f"mime_type: {mime_type}\n"
+        if not (name and mime_type):
+            s += "Fetching\n"
+            start = datetime.now()
+            item = self._get_item(id)
+            end = datetime.now()
+            s += f"Item {str(item)[:20]} fetched in {(end-start).total_seconds()}\n"
+            name = name or item["name"]
+            mime_type = mime_type or item["mimeType"]
 
+        s += "\n\n"
+        print(s)
         self.name = name
         self.mime_type = mime_type
 
@@ -57,7 +64,7 @@ class GoogleDriveFile:
 
     @staticmethod
     def _get_item(id):
-        return drive_service.files().get(
+        return get_drive_service().files().get(
                 fileId=id).execute()
 
     @classmethod
@@ -75,7 +82,7 @@ class GoogleDriveFile:
         :param file_name: Destination file name
         :return: GoogleDriveDocument copy
         """
-        file_item = drive_service.files().copy(
+        file_item = get_drive_service().files().copy(
             fileId=self.id, body={"name": file_name}
         ).execute()
 
@@ -85,7 +92,7 @@ class GoogleDriveFile:
         """
         Delets file from the Google Drive
         """
-        drive_service.files().delete(
+        get_drive_service().files().delete(
             fileId=self.id
         )
 
@@ -94,7 +101,7 @@ class GoogleDriveFile:
         Puts the file into folder
         """
         # Calling API
-        return drive_service.files().update(
+        return get_drive_service().files().update(
             fileId=self.id,
             addParents=folder.id,
             fields='id, parents').execute()
@@ -110,7 +117,7 @@ class GoogleDriveFolder(GoogleDriveFile):
 
     @property
     def children(self):
-        children_items = drive_service.files().list(
+        children_items = get_drive_service().files().list(
           q=f"\"{self.id}\" in parents").execute()['files']
 
         for item in children_items:
@@ -125,7 +132,7 @@ class GoogleDriveDocument(GoogleDriveFile):
         """
         Exports content of the file to format specified in the MimeType and writes it to the File
         """
-        export_bytes = drive_service.files().export(
+        export_bytes = get_drive_service().files().export(
             fileId=self.id, mimeType=mime_type
         ).execute()
 
@@ -135,7 +142,7 @@ class GoogleDriveDocument(GoogleDriveFile):
         # Making media body for the request
         media_body = MediaFileUpload(file_name, mimetype=mime_type, resumable=True)
 
-        drive_service.files().update(
+        get_drive_service().files().update(
             fileId=self.id,
             media_body=media_body
         ).execute()

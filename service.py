@@ -17,5 +17,7 @@ SERVICE_ACCOUNT_FILE = os.path.join(os.path.dirname(__file__), 'service.json')
 credentials = service_account.Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 
-drive_service = discovery.build('drive', 'v3', credentials=credentials)
+
+def get_drive_service():
+    return discovery.build('drive', 'v3', credentials=credentials)
 
