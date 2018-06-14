@@ -35,21 +35,11 @@ class GoogleDriveFile:
     def __init__(self, id, name=None, mime_type=None, *args, **kwargs):
         self.id = id
 
-        s = ''
-        s += "Checking file\n"
-        s += f"name: {name}\n"
-        s += f"mime_type: {mime_type}\n"
         if not (name and mime_type):
-            s += "Fetching\n"
-            start = datetime.now()
             item = self._get_item(id)
-            end = datetime.now()
-            s += f"Item {str(item)[:20]} fetched in {(end-start).total_seconds()}\n"
             name = name or item["name"]
             mime_type = mime_type or item["mimeType"]
 
-        s += "\n\n"
-        print(s)
         self.name = name
         self.mime_type = mime_type
 
