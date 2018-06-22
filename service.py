@@ -19,8 +19,8 @@ credentials = service_account.Credentials.from_service_account_file(
 
 
 def get_drive_service():
-    return discovery.build('drive', 'v3', credentials=credentials)
+    return discovery.build('drive', 'v3', credentials=credentials, cache_discovery=False)
 
 
 def get_sheet_service():
-    return discovery.build('sheets', 'v4', credentials=credentials)
+    return discovery.build('sheets', 'v4', credentials=credentials, cache_discovery=False)
