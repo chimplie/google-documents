@@ -3,7 +3,7 @@ from datetime import datetime
 import googleapiclient
 from googleapiclient.http import MediaFileUpload
 
-from google_documents.service import get_drive_service
+from google_documents.service import get_drive_service, get_sheet_service
 from google_documents.settings import MIME_TYPES
 
 
@@ -136,6 +136,44 @@ class GoogleDriveDocument(GoogleDriveFile):
             fileId=self.id,
             media_body=media_body
         ).execute()
+
+
+class GoogleDriveSpreadsheet(GoogleDriveDocument):
+    def get_range(self, range_name):
+        """
+        Returns data from the range in Google Spreadsheet
+        :param range_name:
+        :return:
+        """
+        service = get_sheet_service()
+
+        response = service.spreadsheets().values().get(
+            spreadsheetId=self.id, range=range_name).execute()
+        values = response.get('values', [])
+        return values
+
+    def clear(self, range_name):
+        """
+        Clears data on spreadsheet at the specified range
+        :param range_name: Range to clear
+        """
+        service = get_sheet_service()
+
+        return service.spreadsheets().values().clear(
+            spreadsheetId=self.id, range=range_name, body={"range": range_name}).execute()
+
+    def write(self, range_name, data, value_input_option="RAW"):
+        """
+        Write data into the Google Sheet
+        :param range_name: Range to write
+        :param data: Data to write
+        :param value_input_option: How to recognize input data
+        """
+        service = get_sheet_service()
+
+        return service.spreadsheets().values().update(
+            spreadsheetId=self.id, range=range_name,
+            body={"values": data}, valueInputOption=value_input_option).execute()
 
 
 class GoogleDriveFilesFactory:
