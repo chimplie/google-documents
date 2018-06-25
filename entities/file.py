@@ -180,6 +180,7 @@ class GoogleDriveFilesFactory:
     file_classes = {
         MIME_TYPES['folder']: GoogleDriveFolder,
         MIME_TYPES['document']: GoogleDriveDocument,
+        MIME_TYPES['spreadsheet']: GoogleDriveSpreadsheet
     }
 
     default_class = GoogleDriveFile
