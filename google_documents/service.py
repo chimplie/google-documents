@@ -12,10 +12,10 @@ SCOPES = [
 ]
 
 # Path to service.json file
-assert os.environ["GOOGLE_DOCUMENT_SERVICE_JSON"], "Google Documents Service account file not found. " \
+assert os.environ.get("GOOGLE_DOCUMENT_SERVICE_JSON"), "Google Documents Service account file not found. " \
                                                    "You should specify it in $GOOGLE_DOCUMENT_SERVICE_JSON " \
                                                    "environment variable."
-SERVICE_ACCOUNT_FILE = os.path["GOOGLE_DOCUMENT_SERVICE_JSON"]
+SERVICE_ACCOUNT_FILE = os.environ["GOOGLE_DOCUMENT_SERVICE_JSON"]
 
 credentials = service_account.Credentials.from_service_account_file(
         SERVICE_ACCOUNT_FILE, scopes=SCOPES)
