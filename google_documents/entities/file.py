@@ -1,5 +1,3 @@
-from datetime import datetime
-
 import googleapiclient
 from googleapiclient.http import MediaFileUpload
 

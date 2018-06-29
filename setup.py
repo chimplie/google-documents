@@ -8,4 +8,11 @@ setup(name='google_documents',
       author_email='pavliuk96@gmail.com',
       license='MIT',
       packages=['google_documents'],
-      zip_safe=False)
+      zip_safe=False,
+      install_requires=[
+            "google-api-python-client==1.6.5",
+            "google-auth==1.4.1",
+            "google-auth-httplib2==0.0.3"
+      ]
+)
+
