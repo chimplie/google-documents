@@ -1,6 +1,4 @@
-# No any database operations - so we need SimpleTestCase
-import logging
-from unittest import TestCase, skip
+from unittest import TestCase
 
 from google_documents.entities.file import GoogleDriveFile, GoogleDriveFolder
 
