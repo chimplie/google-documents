@@ -1,6 +1,6 @@
 import os
 
-from google.oauth2 import service_account
+from oauth2client.service_account import ServiceAccountCredentials
 
 from googleapiclient import discovery
 
@@ -17,8 +17,7 @@ assert os.environ.get("GOOGLE_DOCUMENT_SERVICE_JSON"), "Google Documents Service
                                                    "environment variable."
 SERVICE_ACCOUNT_FILE = os.environ["GOOGLE_DOCUMENT_SERVICE_JSON"]
 
-credentials = service_account.Credentials.from_service_account_file(
-        SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+credentials = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 
 
 def get_drive_service():
