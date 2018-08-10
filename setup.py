@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='google_documents',
-    version='0.0.1',
+    version='0.0.2',
     description='Python package to work with Google Documents',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -16,7 +16,7 @@ setup(
     packages=find_packages(exclude=['google_documents.tests', 'google_documents.tests.entities']),
     zip_safe=False,
     install_requires=[
-        "google-api-python-client==1.6.5",
+        "google-api-python-client==1.6.6",
     ]
 )
 
