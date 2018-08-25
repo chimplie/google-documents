@@ -17,6 +17,7 @@ setup(
     zip_safe=False,
     install_requires=[
         "google-api-python-client==1.6.6",
+        "pandas==0.23.4"
     ]
 )
 
