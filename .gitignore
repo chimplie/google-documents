@@ -108,5 +108,5 @@ venv.bak/
 # Pycharm stuff
 .idea
 
-.dcr2-project-editor.json
+test-service-account.json
 
