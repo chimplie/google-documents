@@ -1,0 +1,7 @@
+language: python
+install:
+  - pip install -r requirements.txt
+before_script:
+  - echo $GOOGLE_SERVICE_ACCOUNT_FILE_CONTENT > test-service-account.json
+script:
+  - python -m unittest .
