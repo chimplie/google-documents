@@ -7,7 +7,6 @@ def data_frame_to_google_spreadsheet(
         data_frame: DataFrame,
         spreadsheet_id,
         range_name,
-        # TODO Elastic setup of google service account
         google_service_account_file=None,
         fillna='',
         include_index=True,
@@ -46,7 +45,13 @@ def data_frame_to_google_spreadsheet(
         data_frame_values_list.insert(0, data_frame_to_write.columns)
 
     # Initializing Google Spreadsheet
-    spreadsheet = GoogleDriveSpreadsheet.get(id=spreadsheet_id)
+    spreadsheet_manager = GoogleDriveSpreadsheet.objects()
+
+    # Using custom credentials
+    if google_service_account_file:
+        spreadsheet_manager.using(google_service_account_file)
+
+    spreadsheet = spreadsheet_manager.get(id=spreadsheet_id)
     if not spreadsheet:
         raise ValueError("Spreadsheet `id` is not valid. Spreadsheet may not exist or "
                          "service account may not have access to it")
@@ -56,3 +61,46 @@ def data_frame_to_google_spreadsheet(
         data=data_frame_values_list,
         value_input_option=value_input_option
     )
+
+
+def google_spreadsheet_to_data_frame(
+        spreadsheet_id,
+        range_name,
+        google_service_account_file=None,
+        skip_rows=0,
+        first_row_as_columns=True,
+        first_column_as_index=False
+
+):
+    spreadsheet_manager = GoogleDriveSpreadsheet.objects()
+
+    # Using custom service account if needed
+    if google_service_account_file:
+        spreadsheet_manager.using(google_service_account_file)
+
+    spreadsheet = spreadsheet_manager.get(id=spreadsheet_id)
+    if not spreadsheet:
+        raise ValueError("Spreadsheet `id` is not valid. Spreadsheet may not exist or "
+                         "service account may not have access to it")
+
+    data: list = spreadsheet.read(range_name=range_name)
+
+    if skip_rows:
+        data = data[skip_rows:]
+
+    columns = None
+    if first_row_as_columns:
+        if len(data) == 0:
+            raise ValueError("Cannot extract columns from the empty Spreadsheet data")
+
+        columns = data.pop(0)
+
+    index = None
+    if first_column_as_index:
+        index = []
+        for row in data:
+            if len(row) == 0:
+                raise ValueError("Cannot extract index name from the empty data row")
+            index.append(row.pop(0))
+
+    return DataFrame.from_records(data, index=index, columns=columns)
