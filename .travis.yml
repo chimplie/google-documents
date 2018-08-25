@@ -4,4 +4,4 @@ install:
 before_script:
   - echo $GOOGLE_SERVICE_ACCOUNT_FILE_CONTENT > test-service-account.json
 script:
-  - python -m unittest .
+  - python -m unittest discover
