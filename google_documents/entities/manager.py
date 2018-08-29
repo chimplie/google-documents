@@ -18,7 +18,6 @@ class GoogleDriveDocumentManager:
         self.file_cls = file_cls
 
     # By default file name is getting from `GOOGLE_DOCUMENT_SERVICE_JSON` enviroment variable
-    # os.environ["GOOGLE_DOCUMENT_SERVICE_JSON"] = "test-service-account.json"
     default_service_account_file = os.environ.get("GOOGLE_DOCUMENT_SERVICE_JSON")
 
     # You can use custom file name, specifying it using(...) method
