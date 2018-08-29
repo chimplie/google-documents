@@ -1,18 +1,21 @@
 import warnings
 
 from googleapiclient.http import MediaFileUpload
-from oauth2client.service_account import ServiceAccountCredentials
 
-from google_documents.entities.api_service_mixin import ApiServiceMixin
+from google_documents.entities.api_credentials_mixin import ApiCredentialsMixin
 from google_documents.entities.from_itemable import FromItemable
 from google_documents.entities.manager import GoogleDriveDocumentManager, GoogleDriveSpreadsheetManager
 from google_documents.settings import MIME_TYPES
 
 
-class GoogleDriveFile(FromItemable, ApiServiceMixin):
+class GoogleDriveFile(FromItemable, ApiCredentialsMixin):
     id: str
     name: str
     mime_type = None
+
+    @property
+    def _api_service(self):
+        return self.objects().get_api_service(credentials=self._api_credentials)
 
     @classmethod
     def get(cls, *args, **kwargs):
@@ -139,10 +142,13 @@ class GoogleDriveDocument(GoogleDriveFile):
 class GoogleDriveSpreadsheet(GoogleDriveDocument):
     mime_type = MIME_TYPES['spreadsheet']
 
+    @classmethod
+    def sheets_manager(cls):
+        return GoogleDriveSpreadsheetManager(cls)
+
     @property
     def _sheet_api_service(self):
-        credentials = ServiceAccountCredentials.from_json_keyfile_dict(self.objects().service_account_credentials)
-        return GoogleDriveSpreadsheetManager(self.__class__).get_service_from_credentials(credentials)
+        return self.sheets_manager().get_api_service(credentials=self._api_credentials)
 
     @classmethod
     def objects(cls):
