@@ -1,4 +1,4 @@
-from google_documents.entities.manager import GoogleDriveDocumentManager
+from google_documents.entity_managers.file import GoogleDriveDocumentManager
 
 
 class ApiCredentialsMixin:

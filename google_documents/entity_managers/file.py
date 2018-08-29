@@ -138,5 +138,17 @@ class GoogleDriveDocumentManager:
 
 
 class GoogleDriveSpreadsheetManager(GoogleDriveDocumentManager):
-    resource_name = 'sheets'
-    version = 4
+    sheets_resource_name = 'sheets'
+    sheets_api_version = 4
+
+    @property
+    def _sheets_api_service(self):
+        return self.get_api_service(
+            self._get_api_credentials(),
+            resource_name=self.sheets_resource_name, version=self.sheets_api_version)
+
+    def create(self, title):
+        item = self._sheets_api_service.spreadsheets().create(
+            data={"properties": {"title": title}}
+        ).execute()
+        return self.file_cls.from_item(item)
