@@ -1,8 +1,9 @@
 language: python
 python: 3.6
 install:
-  - pip install -r requirements.txt
-before_script:
-  - echo $GOOGLE_SERVICE_ACCOUNT_FILE_CONTENT > test-service-account.json
+- pip install -r requirements.txt
 script:
-  - python -m unittest discover
+- python -m unittest discover
+before_install:
+- openssl aes-256-cbc -K $encrypted_key -iv $encrypted_iv
+  -in test-service-account.json.enc -out test-service-account.json -d -a
