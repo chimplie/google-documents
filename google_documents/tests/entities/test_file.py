@@ -11,8 +11,8 @@ class FileTestCase(TestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.file = GoogleDriveFile(TEST_DOCUMENT_ID)
-        cls.folder = GoogleDriveFolder(TEST_FOLDER_ID)
+        cls.file = GoogleDriveFile.get(TEST_DOCUMENT_ID)
+        cls.folder = GoogleDriveFolder.get(TEST_FOLDER_ID)
 
     '''
     We need to start name of all test from the upper case
