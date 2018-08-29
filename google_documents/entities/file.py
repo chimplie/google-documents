@@ -1,13 +1,21 @@
-import googleapiclient
-from googleapiclient.http import MediaFileUpload
+import warnings
 
-from google_documents.service import get_drive_service, get_sheet_service
+from googleapiclient.http import MediaFileUpload
+from oauth2client.service_account import ServiceAccountCredentials
+
+from google_documents.entities.api_service_mixin import ApiServiceMixin
+from google_documents.entities.from_itemable import FromItemable
+from google_documents.entities.manager import GoogleDriveDocumentManager, GoogleDriveSpreadsheetManager
 from google_documents.settings import MIME_TYPES
 
 
-class GoogleDriveFile:
+class GoogleDriveFile(FromItemable, ApiServiceMixin):
     id: str
     name: str
+
+    @classmethod
+    def get(cls, *args, **kwargs):
+        return cls.objects().get(*args, **kwargs)
 
     def __eq__(self, other):
         return self.id == other.id
@@ -19,7 +27,7 @@ class GoogleDriveFile:
     def parents(self):
         # TODO lazy loading of the all files attributes
 
-        response = get_drive_service().files().get(
+        response = self._api_service.files().get(
             fileId=self.id, fields='parents'
         ).execute()
 
@@ -31,12 +39,9 @@ class GoogleDriveFile:
         return f"https://docs.google.com/document/d/{self.id}"
 
     def __init__(self, id, name=None, mime_type=None, *args, **kwargs):
-        self.id = id
+        super().__init__()
 
-        if not (name and mime_type):
-            item = self._get_item(id)
-            name = name or item["name"]
-            mime_type = mime_type or item["mimeType"]
+        self.id = id
 
         self.name = name
         self.mime_type = mime_type
@@ -50,27 +55,13 @@ class GoogleDriveFile:
             id=item["id"], name=item.get("name"), mime_type=item.get("mimeType")
         )
 
-    @staticmethod
-    def _get_item(id):
-        return get_drive_service().files().get(
-                fileId=id).execute()
-
-    @classmethod
-    def get(cls, id):
-        try:
-            item = cls._get_item(id)
-
-            return cls.from_item(item)
-        except googleapiclient.errors.HttpError:
-            return None
-
     def copy(self, file_name: str):
         """
         Makes copy of the file
         :param file_name: Destination file name
         :return: GoogleDriveDocument copy
         """
-        file_item = get_drive_service().files().copy(
+        file_item = self._api_service.files().copy(
             fileId=self.id, body={"name": file_name}
         ).execute()
 
@@ -80,7 +71,7 @@ class GoogleDriveFile:
         """
         Delets file from the Google Drive
         """
-        get_drive_service().files().delete(
+        self._api_service.files().delete(
             fileId=self.id
         )
 
@@ -89,7 +80,7 @@ class GoogleDriveFile:
         Puts the file into folder
         """
         # Calling API
-        return get_drive_service().files().update(
+        return self._api_service.files().update(
             fileId=self.id,
             addParents=folder.id,
             fields='id, parents').execute()
@@ -105,7 +96,7 @@ class GoogleDriveFolder(GoogleDriveFile):
 
     @property
     def children(self):
-        children_items = get_drive_service().files().list(
+        children_items = self._api_service.files().list(
           q=f"\"{self.id}\" in parents").execute()['files']
 
         for item in children_items:
@@ -120,7 +111,7 @@ class GoogleDriveDocument(GoogleDriveFile):
         """
         Exports content of the file to format specified in the MimeType and writes it to the File
         """
-        export_bytes = get_drive_service().files().export(
+        export_bytes = self._api_service.files().export(
             fileId=self.id, mimeType=mime_type
         ).execute()
 
@@ -130,34 +121,44 @@ class GoogleDriveDocument(GoogleDriveFile):
         # Making media body for the request
         media_body = MediaFileUpload(file_name, mimetype=mime_type, resumable=True)
 
-        get_drive_service().files().update(
+        self._api_service.files().update(
             fileId=self.id,
             media_body=media_body
         ).execute()
 
 
 class GoogleDriveSpreadsheet(GoogleDriveDocument):
-    def get_range(self, range_name):
+    @property
+    def _sheet_api_service(self):
+        credentials = ServiceAccountCredentials.from_json_keyfile_dict(self.objects().service_account_credentials)
+        return GoogleDriveSpreadsheetManager(self.__class__).get_service_from_credentials(credentials)
+
+    @classmethod
+    def objects(cls):
+        return GoogleDriveDocumentManager(cls)
+
+    def read(self, range_name):
         """
         Returns data from the range in Google Spreadsheet
         :param range_name:
         :return:
         """
-        service = get_sheet_service()
-
-        response = service.spreadsheets().values().get(
+        response = self._sheet_api_service.spreadsheets().values().get(
             spreadsheetId=self.id, range=range_name).execute()
         values = response.get('values', [])
+
         return values
+
+    def get_range(self, range_name):
+        warnings.warn("`get_range()` has been renamed to `read()`", DeprecationWarning)
+        return self.read(range_name)
 
     def clear(self, range_name):
         """
         Clears data on spreadsheet at the specified range
         :param range_name: Range to clear
         """
-        service = get_sheet_service()
-
-        return service.spreadsheets().values().clear(
+        return self._sheet_api_service.spreadsheets().values().clear(
             spreadsheetId=self.id, range=range_name, body={"range": range_name}).execute()
 
     def write(self, range_name, data, value_input_option="RAW"):
@@ -167,9 +168,7 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
         :param data: Data to write
         :param value_input_option: How to recognize input data
         """
-        service = get_sheet_service()
-
-        return service.spreadsheets().values().update(
+        return self._sheet_api_service.spreadsheets().values().update(
             spreadsheetId=self.id, range=range_name,
             body={"values": data}, valueInputOption=value_input_option).execute()
 

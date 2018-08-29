@@ -11,8 +11,8 @@ class FileTestCase(TestCase):
     def setUpClass(cls):
         super().setUpClass()
 
-        cls.file = GoogleDriveFile(TEST_DOCUMENT_ID)
-        cls.folder = GoogleDriveFolder(TEST_FOLDER_ID)
+        cls.file = GoogleDriveFile.get(TEST_DOCUMENT_ID)
+        cls.folder = GoogleDriveFolder.get(TEST_FOLDER_ID)
 
     '''
     We need to start name of all test from the upper case
@@ -23,7 +23,7 @@ class FileTestCase(TestCase):
         """
         Checking that name and mime_type automatically assigned to the file
         """
-        item = GoogleDriveFile._get_item(TEST_DOCUMENT_ID)
+        item = GoogleDriveFile.objects()._get_item(TEST_DOCUMENT_ID)
 
         self.assertIsNotNone(self.file.name, item["name"])
         self.assertIsNotNone(self.file.mime_type, item["mimeType"])
