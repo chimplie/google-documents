@@ -12,10 +12,15 @@ from google_documents.settings import MIME_TYPES
 class GoogleDriveFile(FromItemable, ApiServiceMixin):
     id: str
     name: str
+    mime_type = None
 
     @classmethod
     def get(cls, *args, **kwargs):
         return cls.objects().get(*args, **kwargs)
+
+    @classmethod
+    def filter(cls, *args, **kwargs):
+        return cls.objects().filter(*args, **kwargs)
 
     def __eq__(self, other):
         return self.id == other.id
@@ -87,6 +92,8 @@ class GoogleDriveFile(FromItemable, ApiServiceMixin):
 
 
 class GoogleDriveFolder(GoogleDriveFile):
+    mime_type = MIME_TYPES['folder']
+
     def __contains__(self, item):
         return self in item.parents
 
@@ -107,6 +114,8 @@ class GoogleDriveFolder(GoogleDriveFile):
 
 
 class GoogleDriveDocument(GoogleDriveFile):
+    mime_type = MIME_TYPES['document']
+
     def export(self, file_name, mime_type=MIME_TYPES['docx']):
         """
         Exports content of the file to format specified in the MimeType and writes it to the File
@@ -128,6 +137,8 @@ class GoogleDriveDocument(GoogleDriveFile):
 
 
 class GoogleDriveSpreadsheet(GoogleDriveDocument):
+    mime_type = MIME_TYPES['spreadsheet']
+
     @property
     def _sheet_api_service(self):
         credentials = ServiceAccountCredentials.from_json_keyfile_dict(self.objects().service_account_credentials)

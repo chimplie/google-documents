@@ -28,6 +28,12 @@ class FileTestCase(TestCase):
         self.assertIsNotNone(self.file.name, item["name"])
         self.assertIsNotNone(self.file.mime_type, item["mimeType"])
 
+    def Test_filter(self):
+        search_results = GoogleDriveFile.objects().filter(
+            name=self.file.name
+        )
+        self.assertIn(self.file, search_results)
+
     def Test_copy(self):
         self.copy = self.file.copy("Test copy file name")
 
@@ -47,6 +53,9 @@ class FileTestCase(TestCase):
         try:
             # Testing correct initialization
             self.Test_init()
+
+            # Test correct filtering
+            self.Test_filter()
 
             # Testing copying file
             self.Test_copy()

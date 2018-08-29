@@ -2,20 +2,29 @@
 
 Work with Google Documents simply without any boring stuff regarding Credentials Account etc.
 
+Find the file in 2 lines:
+
+```python
+>from google_documents.entities import GoogleDriveFile
+>GoogleDriveFile.filter(name="Foo")
+[<GoogleDriveFile: FILE_ID - Foo file>]
+```
+
 Read from the Google Sheet just in 3 lines:
 
 ```python
-from google_documents.entities import GoogleDriveSpreadsheet
-sh = GoogleDriveSpreadsheet.get(id="YOUR_SPREADSHEET_ID")
-sh.read(range_name="Sheet 1!A1:B4")
+>from google_documents.entities import GoogleDriveSpreadsheet
+>sh = GoogleDriveSpreadsheet.get(id="YOUR_SPREADSHEET_ID")
+>sh.read(range_name="Sheet 1!A1:B4")
+[['Your', 'Awesome'], ['Data'], ['.']]
 ```
 
 Export Google Document to word in 3 lines as well:
 
 ```python
-from google_documents.entities import GoogleDriveDocument
-doc = GoogleDriveDocument.get(id="YOUR_DOCUMENT_ID")
-doc.export("my_file.docx")
+>from google_documents.entities import GoogleDriveDocument
+>doc = GoogleDriveDocument.get(id="YOUR_DOCUMENT_ID")
+>doc.export("my_file.docx")
 ```
 
 ## Installation

@@ -1,6 +1,7 @@
 # Google account scopes
 import json
 import os
+import re
 
 import googleapiclient
 from googleapiclient import discovery
@@ -74,6 +75,59 @@ class GoogleDriveDocumentManager:
             return file_obj
         except googleapiclient.errors.HttpError:
             return None
+
+    @staticmethod
+    def _get_filter_folder_query(folder):
+        return f"'{folder.id}' in parents"
+
+    def filter(self, **kwargs):
+        """
+        Filters files according to passed parameters
+        """
+        special_query_getters = {
+            "folder": self._get_filter_folder_query
+        }
+
+        # Add mime type to search exactly files of the respective type
+        # (Search only documents when we're calling GoogleDocument.objects.filter(...)
+        if self.file_cls.mime_type:
+            kwargs['mime_type'] = self.file_cls.mime_type
+
+        # Getting format query
+        params_queries = []
+        for param, value in kwargs.items():
+            # Replace pythonic parameters like 'some_cool_parameter'
+            # To google parameter like 'someCoolParameter'
+            param_camel_case = re.sub('_[a-z]', lambda p: p.group(0)[-1].upper(), param)
+
+            # Getting search query for every parameter
+            if param in special_query_getters:
+                params_queries.append(
+                    special_query_getters[param](value)
+                )
+            elif type(value) == bool:
+                params_queries.append(
+                    f"{param_camel_case} = {value}"
+                )
+            else:
+                params_queries.append(
+                    f"{param_camel_case} contains '{value}'"
+                )
+
+        # Getting total query
+        q = ' and '.join(params_queries)
+
+        response = self._get_api_service().files().list(
+            q=q,
+            spaces='drive',
+            fields='files(id, name, mimeType, parents)').execute()
+
+        files_items = response.get('files', [])
+
+        result = []
+        for file_item in files_items:
+            result.append(self.file_cls.from_item(file_item))
+        return result
 
 
 class GoogleDriveSpreadsheetManager(GoogleDriveDocumentManager):
