@@ -4,8 +4,8 @@ import os
 import re
 
 import googleapiclient
+from google.oauth2 import service_account
 from googleapiclient import discovery
-from oauth2client.service_account import ServiceAccountCredentials
 
 from google_documents.entities.from_itemable import FromItemable
 
@@ -52,7 +52,7 @@ class GoogleDriveDocumentManager:
                                      "in $GOOGLE_DOCUMENT_SERVICE_JSON " \
                                      "environment variable."
 
-        return ServiceAccountCredentials.from_json_keyfile_name(service_account_file, scopes=SCOPES)
+        return service_account.Credentials.from_service_account_file(service_account_file, scopes=SCOPES)
 
     @classmethod
     def get_default_api_credentials(cls):
