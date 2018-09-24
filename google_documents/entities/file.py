@@ -4,7 +4,8 @@ from googleapiclient.http import MediaFileUpload
 
 from google_documents.entities.api_credentials_mixin import ApiCredentialsMixin
 from google_documents.entities.from_itemable import FromItemable
-from google_documents.entities.manager import GoogleDriveDocumentManager, GoogleDriveSpreadsheetManager
+from google_documents.entity_managers.file import GoogleDriveSpreadsheetManager
+from google_documents.entity_managers.sheet import SheetsManager
 from google_documents.settings import MIME_TYPES
 
 
@@ -15,7 +16,8 @@ class GoogleDriveFile(FromItemable, ApiCredentialsMixin):
 
     @property
     def _api_service(self):
-        return self.objects().get_api_service(credentials=self._api_credentials)
+        return self.objects().get_api_service(
+            credentials=self._api_credentials)
 
     @classmethod
     def get(cls, *args, **kwargs):
@@ -60,7 +62,9 @@ class GoogleDriveFile(FromItemable, ApiCredentialsMixin):
         Constructs Google Document from the item, in which Google describe it
         """
         return cls(
-            id=item["id"], name=item.get("name"), mime_type=item.get("mimeType")
+            id=item["id"],
+            name=item.get("name"),
+            mime_type=item.get("mimeType")
         )
 
     def copy(self, file_name: str):
@@ -121,7 +125,8 @@ class GoogleDriveDocument(GoogleDriveFile):
 
     def export(self, file_name, mime_type=MIME_TYPES['docx']):
         """
-        Exports content of the file to format specified in the MimeType and writes it to the File
+        Exports content of the file to format specified
+        in the MimeType and writes it to the File
         """
         export_bytes = self._api_service.files().export(
             fileId=self.id, mimeType=mime_type
@@ -131,7 +136,8 @@ class GoogleDriveDocument(GoogleDriveFile):
 
     def update(self, file_name, mime_type=MIME_TYPES['docx']):
         # Making media body for the request
-        media_body = MediaFileUpload(file_name, mimetype=mime_type, resumable=True)
+        media_body = MediaFileUpload(file_name, mimetype=mime_type,
+                                     resumable=True)
 
         self._api_service.files().update(
             fileId=self.id,
@@ -143,16 +149,12 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
     mime_type = MIME_TYPES['spreadsheet']
 
     @classmethod
-    def sheets_manager(cls):
+    def objects(cls):
         return GoogleDriveSpreadsheetManager(cls)
 
     @property
-    def _sheet_api_service(self):
-        return self.sheets_manager().get_api_service(credentials=self._api_credentials)
-
-    @classmethod
-    def objects(cls):
-        return GoogleDriveDocumentManager(cls)
+    def _sheets_api_service(self):
+        return self.objects()._sheets_api_service
 
     def read(self, range_name):
         """
@@ -160,14 +162,15 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
         :param range_name:
         :return:
         """
-        response = self._sheet_api_service.spreadsheets().values().get(
+        response = self._sheets_api_service.spreadsheets().values().get(
             spreadsheetId=self.id, range=range_name).execute()
         values = response.get('values', [])
 
         return values
 
     def get_range(self, range_name):
-        warnings.warn("`get_range()` has been renamed to `read()`", DeprecationWarning)
+        warnings.warn("`get_range()` has been renamed to `read()`",
+                      DeprecationWarning)
         return self.read(range_name)
 
     def clear(self, range_name):
@@ -175,19 +178,47 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
         Clears data on spreadsheet at the specified range
         :param range_name: Range to clear
         """
-        return self._sheet_api_service.spreadsheets().values().clear(
-            spreadsheetId=self.id, range=range_name, body={"range": range_name}).execute()
+        return self._sheets_api_service.spreadsheets().values().clear(
+            spreadsheetId=self.id, range=range_name,
+            body={"range": range_name}).execute()
 
     def write(self, range_name, data, value_input_option="RAW"):
         """
         Write data into the Google Sheet
-        :param range_name: Range to write
+        :param range_name: Range to write in
         :param data: Data to write
         :param value_input_option: How to recognize input data
         """
-        return self._sheet_api_service.spreadsheets().values().update(
+        return self._sheets_api_service.spreadsheets().values().update(
             spreadsheetId=self.id, range=range_name,
-            body={"values": data}, valueInputOption=value_input_option).execute()
+            body={"values": data}, valueInputOption=value_input_option
+        ).execute()
+
+    @property
+    def sheets(self):
+        return SheetsManager(self)
+
+    @classmethod
+    def create(cls, *args, **kwargs):
+        return cls.objects().create(*args, **kwargs)
+
+    def __getitem__(self, item):
+        """
+        Allows get data from the spreadsheet
+        using spreadhsheet["Sheet1!A1:B2"]
+        """
+        return self.read(item)
+
+    set_item_value_input_option = "RAW"
+
+    def __setitem__(self, item, value):
+        """
+        Allows writing data into the spreadsheet
+        using spreadsheet["Sheet1!A1:B2"] = [["l", "o"], ["l", "!"]]
+        Value input option should be set here (if needed)
+        via set_item_value_input_option
+        """
+        self.write(item, value, self.set_item_value_input_option)
 
 
 class GoogleDriveFilesFactory:

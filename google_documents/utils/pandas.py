@@ -22,8 +22,9 @@ def data_frame_to_google_spreadsheet(
     :param fillna: value by which to replace dataframe NA values
     :param include_index: True if write data frame index to the spreadsheet
     :param include_columns: True if write data frame column to the spreadsheet
-    :param value_input_option: 'RAW' if you want to allow Google Sheets to format your values,
-                               'USER_ENTERED' to keep values in the same format
+    :param value_input_option: 'RAW' if you want
+    to allow Google Sheets to format your values,
+    'USER_ENTERED' to keep values in the same format
     :return:
     """
     if include_index:
@@ -53,7 +54,8 @@ def data_frame_to_google_spreadsheet(
 
     spreadsheet = spreadsheet_manager.get(id=spreadsheet_id)
     if not spreadsheet:
-        raise ValueError("Spreadsheet `id` is not valid. Spreadsheet may not exist or "
+        raise ValueError("Spreadsheet `id` is not valid. "
+                         "Spreadsheet may not exist or "
                          "service account may not have access to it")
 
     spreadsheet.write(
@@ -80,7 +82,8 @@ def google_spreadsheet_to_data_frame(
 
     spreadsheet = spreadsheet_manager.get(id=spreadsheet_id)
     if not spreadsheet:
-        raise ValueError("Spreadsheet `id` is not valid. Spreadsheet may not exist or "
+        raise ValueError("Spreadsheet `id` is not valid. "
+                         "Spreadsheet may not exist or "
                          "service account may not have access to it")
 
     data: list = spreadsheet.read(range_name=range_name)
@@ -91,7 +94,8 @@ def google_spreadsheet_to_data_frame(
     columns = None
     if first_row_as_columns:
         if len(data) == 0:
-            raise ValueError("Cannot extract columns from the empty Spreadsheet data")
+            raise ValueError(
+                "Cannot extract columns from the empty Spreadsheet data")
 
         columns = data.pop(0)
 
@@ -100,7 +104,8 @@ def google_spreadsheet_to_data_frame(
         index = []
         for row in data:
             if len(row) == 0:
-                raise ValueError("Cannot extract index name from the empty data row")
+                raise ValueError(
+                    "Cannot extract index name from the empty data row")
             index.append(row.pop(0))
 
     return DataFrame.from_records(data, index=index, columns=columns)

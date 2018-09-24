@@ -18,8 +18,10 @@ class GoogleDriveDocumentManager:
     def __init__(self, file_cls: type(FromItemable)):
         self.file_cls = file_cls
 
-    # By default file name is getting from `GOOGLE_DOCUMENT_SERVICE_JSON` enviroment variable
-    default_service_account_file = os.environ.get("GOOGLE_DOCUMENT_SERVICE_JSON")
+    # By default file name is getting from `GOOGLE_DOCUMENT_SERVICE_JSON`
+    # enviroment variable
+    default_service_account_file = os.environ.get(
+        "GOOGLE_DOCUMENT_SERVICE_JSON")
 
     # You can use custom file name, specifying it using(...) method
     custom_service_account_file = None
@@ -46,24 +48,32 @@ class GoogleDriveDocumentManager:
         return self
 
     @classmethod
-    def _get_credentials_from_service_account_file(cls, service_account_file):
-        assert service_account_file, "Google Documents Service account file not found. " \
-                                     "You should specify it via google_service_account_file or " \
-                                     "in $GOOGLE_DOCUMENT_SERVICE_JSON " \
-                                     "environment variable."
+    def _get_credentials_from_service_account_file(
+            cls, service_account_file):
+        assert service_account_file, \
+            "Google Documents Service account file not found. " \
+            "You should specify it via google_service_account_file or " \
+            "in $GOOGLE_DOCUMENT_SERVICE_JSON " \
+            "environment variable."
 
-        return service_account.Credentials.from_service_account_file(service_account_file, scopes=SCOPES)
+        return service_account.Credentials.from_service_account_file(
+            service_account_file, scopes=SCOPES)
 
     @classmethod
     def get_default_api_credentials(cls):
-        return cls._get_credentials_from_service_account_file(cls.default_service_account_file)
+        return cls._get_credentials_from_service_account_file(
+            cls.default_service_account_file
+        )
 
     @property
     def _service_account_file(self):
-        return self.custom_service_account_file or self.default_service_account_file
+        return self.custom_service_account_file or \
+               self.default_service_account_file
 
     def _get_api_credentials(self):
-        return self._get_credentials_from_service_account_file(self._service_account_file)
+        return self._get_credentials_from_service_account_file(
+            self._service_account_file
+        )
 
     @property
     def service_account_credentials(self):
@@ -71,7 +81,7 @@ class GoogleDriveDocumentManager:
 
     def _get_item(self, id):
         return self._api_service.files().get(
-                fileId=id).execute()
+            fileId=id).execute()
 
     def get(self, id):
         try:
@@ -87,6 +97,9 @@ class GoogleDriveDocumentManager:
     def _get_filter_folder_query(folder):
         return f"'{folder.id}' in parents"
 
+    def all(self):
+        return self.filter()
+
     def filter(self, **kwargs):
         """
         Filters files according to passed parameters
@@ -96,7 +109,8 @@ class GoogleDriveDocumentManager:
         }
 
         # Add mime type to search exactly files of the respective type
-        # (Search only documents when we're calling GoogleDocument.objects.filter(...)
+        # (Search only documents when we're calling
+        # GoogleDocument.objects.filter(...)
         if self.file_cls.mime_type:
             kwargs['mime_type'] = self.file_cls.mime_type
 
@@ -105,7 +119,8 @@ class GoogleDriveDocumentManager:
         for param, value in kwargs.items():
             # Replace pythonic parameters like 'some_cool_parameter'
             # To google parameter like 'someCoolParameter'
-            param_camel_case = re.sub('_[a-z]', lambda p: p.group(0)[-1].upper(), param)
+            param_camel_case = re.sub(
+                '_[a-z]', lambda p: p.group(0)[-1].upper(), param)
 
             # Getting search query for every parameter
             if param in special_query_getters:
@@ -138,5 +153,19 @@ class GoogleDriveDocumentManager:
 
 
 class GoogleDriveSpreadsheetManager(GoogleDriveDocumentManager):
-    resource_name = 'sheets'
-    version = 4
+    sheets_resource_name = 'sheets'
+    sheets_api_version = 4
+
+    @property
+    def _sheets_api_service(self):
+        return self.get_api_service(
+            self._get_api_credentials(),
+            resource_name=self.sheets_resource_name,
+            version=self.sheets_api_version
+        )
+
+    def create(self, title):
+        item = self._sheets_api_service.spreadsheets().create(
+            data={"properties": {"title": title}}
+        ).execute()
+        return self.file_cls.from_item(item)
