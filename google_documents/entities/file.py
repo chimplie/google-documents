@@ -16,7 +16,8 @@ class GoogleDriveFile(FromItemable, ApiCredentialsMixin):
 
     @property
     def _api_service(self):
-        return self.objects().get_api_service(credentials=self._api_credentials)
+        return self.objects().get_api_service(
+            credentials=self._api_credentials)
 
     @classmethod
     def get(cls, *args, **kwargs):
@@ -61,7 +62,9 @@ class GoogleDriveFile(FromItemable, ApiCredentialsMixin):
         Constructs Google Document from the item, in which Google describe it
         """
         return cls(
-            id=item["id"], name=item.get("name"), mime_type=item.get("mimeType")
+            id=item["id"],
+            name=item.get("name"),
+            mime_type=item.get("mimeType")
         )
 
     def copy(self, file_name: str):
@@ -122,7 +125,8 @@ class GoogleDriveDocument(GoogleDriveFile):
 
     def export(self, file_name, mime_type=MIME_TYPES['docx']):
         """
-        Exports content of the file to format specified in the MimeType and writes it to the File
+        Exports content of the file to format specified
+        in the MimeType and writes it to the File
         """
         export_bytes = self._api_service.files().export(
             fileId=self.id, mimeType=mime_type
@@ -132,7 +136,8 @@ class GoogleDriveDocument(GoogleDriveFile):
 
     def update(self, file_name, mime_type=MIME_TYPES['docx']):
         # Making media body for the request
-        media_body = MediaFileUpload(file_name, mimetype=mime_type, resumable=True)
+        media_body = MediaFileUpload(file_name, mimetype=mime_type,
+                                     resumable=True)
 
         self._api_service.files().update(
             fileId=self.id,
@@ -164,7 +169,8 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
         return values
 
     def get_range(self, range_name):
-        warnings.warn("`get_range()` has been renamed to `read()`", DeprecationWarning)
+        warnings.warn("`get_range()` has been renamed to `read()`",
+                      DeprecationWarning)
         return self.read(range_name)
 
     def clear(self, range_name):
@@ -173,7 +179,8 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
         :param range_name: Range to clear
         """
         return self._sheets_api_service.spreadsheets().values().clear(
-            spreadsheetId=self.id, range=range_name, body={"range": range_name}).execute()
+            spreadsheetId=self.id, range=range_name,
+            body={"range": range_name}).execute()
 
     def write(self, range_name, data, value_input_option="RAW"):
         """
@@ -184,7 +191,8 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
         """
         return self._sheets_api_service.spreadsheets().values().update(
             spreadsheetId=self.id, range=range_name,
-            body={"values": data}, valueInputOption=value_input_option).execute()
+            body={"values": data}, valueInputOption=value_input_option
+        ).execute()
 
     @property
     def sheets(self):
@@ -196,7 +204,8 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
 
     def __getitem__(self, item):
         """
-        Allows get data from the spreadsheet using spreadhsheet["Sheet1!A1:B2"]
+        Allows get data from the spreadsheet
+        using spreadhsheet["Sheet1!A1:B2"]
         """
         return self.read(item)
 
@@ -204,8 +213,10 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
 
     def __setitem__(self, item, value):
         """
-        Allows writing data into the spreadsheet using spreadsheet["Sheet1!A1:B2"] = [["l", "o"], ["l", "!"]]
-        Value input option should be set here (if needed) via set_item_value_input_option
+        Allows writing data into the spreadsheet
+        using spreadsheet["Sheet1!A1:B2"] = [["l", "o"], ["l", "!"]]
+        Value input option should be set here (if needed)
+        via set_item_value_input_option
         """
         self.write(item, value, self.set_item_value_input_option)
 

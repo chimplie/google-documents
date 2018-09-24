@@ -40,7 +40,9 @@ class Sheet(FromItemable):
     title: str
     tab_color: Color = None
     grid_properties: GridProperties = None
-    spreadsheet = None  # Optional - if assigned, makes available sheet read/write methods
+
+    # Optional - if assigned, makes available sheet read/write methods
+    spreadsheet = None
 
     def assign_spreadsheet(self, spreadsheet):
         self.spreadsheet = spreadsheet
@@ -58,7 +60,9 @@ class Sheet(FromItemable):
         """
         assert self.spreadsheet, "Spreadsheet for the sheet is unknown."
 
-        return self.spreadsheet.read(self._get_spreadsheet_range_name(range_name))
+        return self.spreadsheet.read(
+            self._get_spreadsheet_range_name(range_name)
+        )
 
     def write(self, range_name, data, value_input_option="RAW"):
         """
@@ -84,15 +88,18 @@ class Sheet(FromItemable):
         """
         assert self.spreadsheet, "Spreadsheet for the sheet is unknown."
 
-        return self.spreadsheet.clear(self._get_spreadsheet_range_name(range_name))
+        return self.spreadsheet.clear(
+            self._get_spreadsheet_range_name(range_name)
+        )
 
     def delete(self):
         assert self.spreadsheet, "Spreadsheet for the sheet is unknown."
 
-        response = self.spreadsheet._sheets_api_service.spreadsheets().batchUpdate(
-            spreadsheetId=self.spreadsheet.id,
-            body={"requests": [{"deleteSheet": {"sheetId": self.id}}]}
-        ).execute()
+        response = self.spreadsheet._sheets_api_service. \
+            spreadsheets().batchUpdate(
+                spreadsheetId=self.spreadsheet.id,
+                body={"requests": [{"deleteSheet": {"sheetId": self.id}}]}
+            ).execute()
 
         # Delete spreadhseet from sheet
         self.spreadsheet = None
@@ -105,7 +112,8 @@ class Sheet(FromItemable):
 
         grid_properties = None
         if properties.get("gridProperties"):
-            grid_properties = GridProperties.from_item(properties["gridProperties"])
+            grid_properties = GridProperties.from_item(
+                properties["gridProperties"])
 
         tab_color = None
         if properties.get("tabColor"):
@@ -124,7 +132,8 @@ class Sheet(FromItemable):
             "sheetId": self.id,
             "index": self.index,
             "title": self.title,
-            "gridProperties": self.grid_properties and self.grid_properties.to_item(),
+            "gridProperties": self.grid_properties.to_item()
+            if self.grid_properties else None,
             "tabColor": self.tab_color and self.tab_color.to_item(),
         }
 
@@ -138,12 +147,21 @@ class Sheet(FromItemable):
 
     def __setitem__(self, item, value):
         """
-        Allows writing data into the spreadsheet using sheet["A1:B2"] = [["l", "o"], ["l", "!"]]
-        Value input option should be set here (if needed) via set_item_value_input_option
+        Allows writing data into the spreadsheet using
+        sheet["A1:B2"] = [["l", "o"], ["l", "!"]]
+        Value input option should be set here (if needed)
+        via set_item_value_input_option
         """
         self.write(item, value, self.set_item_value_input_option)
 
-    def __init__(self, id=None, index=None, title=None, tab_color=None, grid_properties=None):
+    def __init__(
+            self,
+            id=None,
+            index=None,
+            title=None,
+            tab_color=None,
+            grid_properties=None
+    ):
         self.id = id
         self.index = index
         self.title = title
@@ -153,7 +171,7 @@ class Sheet(FromItemable):
     def __eq__(self, other):
         assert self.spreadsheet, "Spreadsheet for the sheet is unknown."
         assert other.spreadsheet, "Spreadsheet for the sheet is unknown."
-        
+
         return self.spreadsheet == other.spreadsheet and self.id == other.id
 
     def __repr__(self):

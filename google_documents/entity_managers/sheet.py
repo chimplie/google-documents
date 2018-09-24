@@ -51,7 +51,8 @@ class SheetsManager:
             if sheet.title == item:
                 return sheet
 
-        raise KeyError(f"Sheet with title `{item}` has not found at {self.spreadsheet}")
+        raise KeyError(f"Sheet with title `{item}` "
+                       f"has not found at {self.spreadsheet}")
 
     def all(self):
         return self._sheets
@@ -89,10 +90,12 @@ class SheetsManager:
         """
         Creates sheets in the Spreadsheet from the Sheet objects
         """
-        response = self.spreadsheet._sheets_api_service.spreadsheets().batchUpdate(
-            spreadsheetId=self.spreadsheet.id,
-            body={"requests": list(map(self._get_add_sheet_request, sheets))}
-        ).execute()
+        response = self.spreadsheet._sheets_api_service.\
+            spreadsheets().batchUpdate(
+                spreadsheetId=self.spreadsheet.id,
+                body={"requests": list(map(
+                    self._get_add_sheet_request, sheets))}
+            ).execute()
 
         # Append new sheets to sheets collection
         self._update_sheets_from_response(sheets, response)
