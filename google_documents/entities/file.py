@@ -196,7 +196,7 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
 
     def __getitem__(self, item):
         """
-        Allows get data from the spreadsheet in the using spreadhsheet["Sheet1!A1:B2"]
+        Allows get data from the spreadsheet using spreadhsheet["Sheet1!A1:B2"]
         """
         return self.read(item)
 

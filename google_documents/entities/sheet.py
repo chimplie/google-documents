@@ -56,7 +56,7 @@ class Sheet(FromItemable):
         Reads data from the sheet
         :param range_name: Range to read
         """
-        assert self.spreadsheet, "Spreadsheet fot the sheet is unknown."
+        assert self.spreadsheet, "Spreadsheet for the sheet is unknown."
 
         return self.spreadsheet.read(self._get_spreadsheet_range_name(range_name))
 
@@ -68,7 +68,7 @@ class Sheet(FromItemable):
         :param value_input_option: How to recognize input data
         :return:
         """
-        assert self.spreadsheet, "Spreadsheet fot the sheet is unknown."
+        assert self.spreadsheet, "Spreadsheet for the sheet is unknown."
 
         return self.spreadsheet.write(
             range_name=self._get_spreadsheet_range_name(range_name),
@@ -82,12 +82,12 @@ class Sheet(FromItemable):
         :param range_name: Range to clear
         :return:
         """
-        assert self.spreadsheet, "Spreadsheet fot the sheet is unknown."
+        assert self.spreadsheet, "Spreadsheet for the sheet is unknown."
 
         return self.spreadsheet.clear(self._get_spreadsheet_range_name(range_name))
 
     def delete(self):
-        assert self.spreadsheet, "Spreadsheet fot the sheet is unknown."
+        assert self.spreadsheet, "Spreadsheet for the sheet is unknown."
 
         response = self.spreadsheet._sheets_api_service.spreadsheets().batchUpdate(
             spreadsheetId=self.spreadsheet.id,
@@ -130,7 +130,7 @@ class Sheet(FromItemable):
 
     def __getitem__(self, item):
         """
-        Allows get data from the spreadsheet in the using sheet["A1:B2"]
+        Allows get data from the spreadsheet using sheet["A1:B2"]
         """
         return self.read(item)
 
@@ -151,8 +151,8 @@ class Sheet(FromItemable):
         self.grid_properties = grid_properties
 
     def __eq__(self, other):
-        assert self.spreadsheet, "Spreadsheet fot the sheet is unknown."
-        assert other.spreadsheet, "Spreadsheet fot the sheet is unknown."
+        assert self.spreadsheet, "Spreadsheet for the sheet is unknown."
+        assert other.spreadsheet, "Spreadsheet for the sheet is unknown."
         
         return self.spreadsheet == other.spreadsheet and self.id == other.id
 
