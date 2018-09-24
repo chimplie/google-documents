@@ -25,7 +25,12 @@ class SheetsManager:
 
         self._sheets_objects = []
         for sheet_item in sheets_items:
-            self._sheets_objects.append(Sheet.from_item(sheet_item))
+            sheet = Sheet.from_item(sheet_item)
+            sheet.assign_spreadsheet(self.spreadsheet)
+            self._sheets_objects.append(sheet)
+
+    def __len__(self):
+        return len(self._sheets)
 
     def __iter__(self):
         return self
@@ -50,3 +55,46 @@ class SheetsManager:
 
     def all(self):
         return self._sheets
+
+    @staticmethod
+    def _get_add_sheet_request(sheet: Sheet):
+        return {
+            "addSheet": {
+                "properties": sheet.to_item()
+            }
+        }
+
+    def _update_sheets_from_response(self, sheets, response):
+        for reply in response['replies']:
+            _sheet = Sheet.from_item(reply["addSheet"])
+            sheet = list(filter(lambda s: s.title == _sheet.title, sheets))[0]
+
+            # Copy all sheet properties from the response to the passed sheet
+            sheet.__dict__ = _sheet.__dict__.copy()
+
+            sheet.assign_spreadsheet(self.spreadsheet)
+            self._sheets.append(sheet)
+
+    def create(self, **kwargs):
+        """
+        Creates sheet in the spreadsheet
+        """
+        sheet = Sheet(**kwargs)
+
+        self.batch_create([sheet])
+
+        return sheet
+
+    def batch_create(self, sheets: [Sheet]):
+        """
+        Creates sheets in the Spreadsheet from the Sheet objects
+        """
+        response = self.spreadsheet._sheets_api_service.spreadsheets().batchUpdate(
+            spreadsheetId=self.spreadsheet.id,
+            body={"requests": list(map(self._get_add_sheet_request, sheets))}
+        ).execute()
+
+        # Append new sheets to sheets collection
+        self._update_sheets_from_response(sheets, response)
+
+        return response

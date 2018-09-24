@@ -178,7 +178,7 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
     def write(self, range_name, data, value_input_option="RAW"):
         """
         Write data into the Google Sheet
-        :param range_name: Range to write
+        :param range_name: Range to write in
         :param data: Data to write
         :param value_input_option: How to recognize input data
         """
@@ -193,6 +193,21 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
     @classmethod
     def create(cls, *args, **kwargs):
         return cls.objects().create(*args, **kwargs)
+
+    def __getitem__(self, item):
+        """
+        Allows get data from the spreadsheet in the using spreadhsheet["Sheet1!A1:B2"]
+        """
+        return self.read(item)
+
+    set_item_value_input_option = "RAW"
+
+    def __setitem__(self, item, value):
+        """
+        Allows writing data into the spreadsheet using spreadsheet["Sheet1!A1:B2"] = [["l", "o"], ["l", "!"]]
+        Value input option should be set here (if needed) via set_item_value_input_option
+        """
+        self.write(item, value, self.set_item_value_input_option)
 
 
 class GoogleDriveFilesFactory:

@@ -87,6 +87,9 @@ class GoogleDriveDocumentManager:
     def _get_filter_folder_query(folder):
         return f"'{folder.id}' in parents"
 
+    def all(self):
+        return self.filter()
+
     def filter(self, **kwargs):
         """
         Filters files according to passed parameters
