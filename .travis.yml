@@ -3,7 +3,7 @@ python: 3.6
 install:
 - pip install -r requirements.txt
 script:
-- python -m unittest discover
+- py.test --doctest-modules -v
 before_install:
 - openssl aes-256-cbc -K $encrypted_key -iv $encrypted_iv
   -in test-service-account.json.enc -out test-service-account.json -d -a
