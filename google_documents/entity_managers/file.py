@@ -166,6 +166,7 @@ class GoogleDriveSpreadsheetManager(GoogleDriveDocumentManager):
 
     def create(self, title):
         item = self._sheets_api_service.spreadsheets().create(
-            data={"properties": {"title": title}}
+            body={"properties": {"title": title}}
         ).execute()
+
         return self.file_cls.from_item(item)

@@ -84,9 +84,9 @@ class GoogleDriveFile(FromItemable, ApiCredentialsMixin):
         """
         Delets file from the Google Drive
         """
-        self._api_service.files().delete(
+        return self._api_service.files().delete(
             fileId=self.id
-        )
+        ).execute()
 
     def put_to_folder(self, folder):
         """
@@ -152,6 +152,18 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
     @classmethod
     def objects(cls):
         return GoogleDriveSpreadsheetManager(cls)
+
+    @classmethod
+    def from_item(cls, item):
+        if 'id' in item:
+            # Item from Google Drive API
+            return super().from_item(item)
+
+        # Item for Google Sheets API
+        return cls(
+            id=item["spreadsheetId"],
+            name=item['properties'].get('title')
+        )
 
     @property
     def _sheets_api_service(self):
