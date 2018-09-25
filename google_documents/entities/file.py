@@ -1,3 +1,4 @@
+import os
 import warnings
 
 from googleapiclient.http import MediaFileUpload
@@ -168,6 +169,49 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
 
         return values
 
+    def batch_read(self, ranges_names: [str]):
+        """
+        Reads multiple ranges from the spreadsheet
+        :param ranges_names: List of ranges to get data from
+        """
+        response = self._sheets_api_service.spreadsheets().values().batchGet(
+            spreadsheetId=self.id, ranges=ranges_names).execute()
+
+        value_ranges = response.get('valueRanges', [])
+
+        # Extract values from value_ranges
+        values = []
+        for value_range in value_ranges:
+            values.append(value_range.get('values', []))
+        return values
+
+    def batch_write(self, value_ranges, value_input_option="RAW"):
+        """
+        Writes to the multiple ranges in the Google Sheet
+        :param value_ranges: List of objects like
+        {"range": "{sheet name}!{range name}":
+        values: [[ 2 dimensional array]]}
+        :param value_input_option: How to recognize input data
+        """
+        # TODO Support of the value
+        body = {
+            'valueInputOption': value_input_option,
+            'data': value_ranges
+        }
+
+        return self._sheets_api_service.spreadsheets().values().batchUpdate(
+            spreadsheetId=self.id,
+            body=body).execute()
+
+    def batch_clear(self, ranges_names: [str]):
+        """
+        Clears data in spreadsheet ranges
+        :param ranges_names: Ranges to clear
+        """
+        return self._sheets_api_service.spreadsheets().values().batchClear(
+            spreadsheetId=self.id,
+            body={"ranges": ranges_names}).execute()
+
     def get_range(self, range_name):
         warnings.warn("`get_range()` has been renamed to `read()`",
                       DeprecationWarning)
@@ -205,20 +249,41 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
     def __getitem__(self, item):
         """
         Allows get data from the spreadsheet
-        using spreadhsheet["Sheet1!A1:B2"]
+        using sph["Sheet1!A1:B2"]
+        or batch reading
+        using sph[["Sheet1!A1:B2", "Sheet1!A5:B6"]]
         """
-        return self.read(item)
+        if isinstance(item, str):
+            return self.read(item)
+        else:
+            return self.batch_read(item)
 
     set_item_value_input_option = "RAW"
 
     def __setitem__(self, item, value):
         """
         Allows writing data into the spreadsheet
-        using spreadsheet["Sheet1!A1:B2"] = [["l", "o"], ["l", "!"]]
+        using sph["Sheet1!A1:B2"] = [["l", "o"], ["l", "!"]]
+        or batch writing
+        using sph[["Sheet1!A1:B2", "Sheet1!A5:B6"]] = \
+        ([["l", "o"], ["l", "!"]], [["f", "o"], ["o", "!"]])
         Value input option should be set here (if needed)
         via set_item_value_input_option
         """
-        self.write(item, value, self.set_item_value_input_option)
+        if isinstance(item, str):
+            self.write(item, value, self.set_item_value_input_option)
+        else:
+            # There should be equal count of ranges and values to set
+            if not len(item) == len(value):
+                raise ValueError("Length of ranges and vales is not equal")
+
+            value_ranges = [
+                {"range": range_name,
+                 "values": values}
+                for range_name, values
+                in zip(item, value)
+            ]
+            self.batch_write(value_ranges, self.set_item_value_input_option)
 
 
 class GoogleDriveFilesFactory:
