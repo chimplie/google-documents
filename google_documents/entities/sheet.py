@@ -92,6 +92,55 @@ class Sheet(FromItemable):
             self._get_spreadsheet_range_name(range_name)
         )
 
+    def batch_read(self, ranges_names):
+        """
+        Reads multiple ranges from the spreasheet
+        :param ranges_names:
+        :return:
+        """
+        assert self.spreadsheet, "Spreadsheet for the sheet is unknown."
+
+        # Convert everything to range names with the sheet name
+        ranges_names = list(map(
+            self._get_spreadsheet_range_name, ranges_names
+        ))
+        return self.spreadsheet.batch_read(ranges_names)
+
+    def batch_write(self, value_ranges, value_input_option="RAW"):
+        """
+        Writes data tu the multiple ranges in the Google Sheet
+        :param value_ranges: List of dicts like
+        {"range": "A1:B2", data: [[data to write]]}
+        :param value_input_option: How to recognize input data
+        :return:
+        """
+        assert self.spreadsheet, "Spreadsheet for the sheet is unknown."
+
+        # Convert ranges in value_ranges to the ranges with the sheet name
+        value_ranges = list(map(
+            lambda r: {
+                **r,
+                "range": self._get_spreadsheet_range_name(r["range"])
+            },
+            value_ranges
+        ))
+
+        return self.spreadsheet.batch_write(value_ranges, value_input_option)
+
+    def batch_clear(self, ranges_names):
+        """
+        Clears multiple ranges in the Google Sheets
+        :param ranges_names: Ranges to clear
+        :return:
+        """
+        assert self.spreadsheet, "Spreadsheet for the sheet is unknown."
+
+        ranges_names = list(map(
+            self._get_spreadsheet_range_name, ranges_names
+        ))
+
+        return self.spreadsheet.batch_clear(ranges_names)
+
     def delete(self):
         assert self.spreadsheet, "Spreadsheet for the sheet is unknown."
 
@@ -140,8 +189,12 @@ class Sheet(FromItemable):
     def __getitem__(self, item):
         """
         Allows get data from the spreadsheet using sheet["A1:B2"]
+        or batch get using sheet[["A1:B2", "A5:B6"]]
         """
-        return self.read(item)
+        if isinstance(item, str):
+            return self.read(item)
+        else:
+            return self.batch_read(item)
 
     set_item_value_input_option = "RAW"
 
@@ -149,10 +202,27 @@ class Sheet(FromItemable):
         """
         Allows writing data into the spreadsheet using
         sheet["A1:B2"] = [["l", "o"], ["l", "!"]]
+        or using batch writing
+        sheet[["A1:B2", "A5:B6]] = \
+        ([["l", "o"], ["l", "!"]], [["f", "o"], ["o", "!"]])
+
         Value input option should be set here (if needed)
         via set_item_value_input_option
         """
-        self.write(item, value, self.set_item_value_input_option)
+        if isinstance(item, str):
+            self.write(item, value, self.set_item_value_input_option)
+        else:
+            # There should be equal count of ranges and values to set
+            if not len(item) == len(value):
+                raise ValueError("Length of ranges and vales is not equal")
+
+            value_ranges = [
+                {"range": range_name,
+                 "values": values}
+                for range_name, values
+                in zip(item, value)
+            ]
+            self.batch_write(value_ranges, self.set_item_value_input_option)
 
     def __init__(
             self,
