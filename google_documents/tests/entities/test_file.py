@@ -50,19 +50,14 @@ class FileTestCase(TestCase):
         self.assertIn(self.copy, folder)
 
     def test_all(self):
-        try:
-            # Testing correct initialization
-            self.Test_init()
+        # Testing correct initialization
+        self.Test_init()
 
-            # Test correct filtering
-            self.Test_filter()
+        # Test correct filtering
+        self.Test_filter()
 
-            # Testing copying file
-            self.Test_copy()
+        # Testing copying file
+        self.Test_copy()
 
-            # Testing putting file to the folder
-            self.Test_put_to_folder()
-        finally:
-            # Removing file at the end of the test
-            # even if test failed
-            self.file.delete()
+        # Testing putting file to the folder
+        self.Test_put_to_folder()

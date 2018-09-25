@@ -17,6 +17,9 @@ Read from the Google Sheet just in 3 lines:
 >sh = GoogleDriveSpreadsheet.get(id="YOUR_SPREADSHEET_ID")
 >sh.read(range_name="Sheet 1!A1:B4")
 [['Your', 'Awesome'], ['Data'], ['.']]
+># Or using indexers
+>sh["Sheet 1!A1:B4"]
+[['Your', 'Awesome'], ['Data'], ['.']]
 ```
 
 Export Google Document to word in 3 lines as well:
