@@ -1,3 +1,6 @@
+"""
+Contains Google Drive file-like classes like file, document or Spreadsheet
+"""
 import os
 import warnings
 
@@ -11,6 +14,9 @@ from google_documents.settings import MIME_TYPES
 
 
 class GoogleDriveFile(FromItemable, ApiCredentialsMixin):
+    """
+    Represents file at the Google Drive
+    """
     id: str
     name: str
     mime_type = None
@@ -22,10 +28,17 @@ class GoogleDriveFile(FromItemable, ApiCredentialsMixin):
 
     @classmethod
     def get(cls, *args, **kwargs):
+        """
+        Returns file at the Google Drive by its properties like id or name
+        """
         return cls.objects().get(*args, **kwargs)
 
     @classmethod
     def filter(cls, *args, **kwargs):
+        """
+        Searches file by some of theirs properties like id or name
+        Returns list of files
+        """
         return cls.objects().filter(*args, **kwargs)
 
     def __eq__(self, other):
@@ -36,9 +49,13 @@ class GoogleDriveFile(FromItemable, ApiCredentialsMixin):
 
     @property
     def parents(self):
+        """
+        Returns folders that contains the file
+        :return:
+        """
         # TODO lazy loading of the all files attributes
 
-        response = self._api_service.files().get(
+        response = self._api_service.files().get(  # pylint: disable=no-member
             fileId=self.id, fields='parents'
         ).execute()
 
@@ -47,12 +64,15 @@ class GoogleDriveFile(FromItemable, ApiCredentialsMixin):
 
     @property
     def url(self):
+        """
+        Returns url to the file
+        """
         return f"https://docs.google.com/document/d/{self.id}"
 
     def __init__(self, id, name=None, mime_type=None, *args, **kwargs):
         super().__init__()
 
-        self.id = id
+        self.id = id  # pylint: disable=invalid-name
 
         self.name = name
         self.mime_type = mime_type
@@ -74,7 +94,7 @@ class GoogleDriveFile(FromItemable, ApiCredentialsMixin):
         :param file_name: Destination file name
         :return: GoogleDriveDocument copy
         """
-        file_item = self._api_service.files().copy(
+        file_item = self._api_service.files().copy(  # pylint: disable=no-member
             fileId=self.id, body={"name": file_name}
         ).execute()
 
@@ -84,7 +104,7 @@ class GoogleDriveFile(FromItemable, ApiCredentialsMixin):
         """
         Delets file from the Google Drive
         """
-        return self._api_service.files().delete(
+        return self._api_service.files().delete(  # pylint: disable=no-member
             fileId=self.id
         ).execute()
 
@@ -93,13 +113,16 @@ class GoogleDriveFile(FromItemable, ApiCredentialsMixin):
         Puts the file into folder
         """
         # Calling API
-        return self._api_service.files().update(
+        return self._api_service.files().update(  # pylint: disable=no-member
             fileId=self.id,
             addParents=folder.id,
             fields='id, parents').execute()
 
 
 class GoogleDriveFolder(GoogleDriveFile):
+    """
+    Represents folder in the Google Drive
+    """
     mime_type = MIME_TYPES['folder']
 
     def __contains__(self, item):
@@ -111,8 +134,11 @@ class GoogleDriveFolder(GoogleDriveFile):
 
     @property
     def children(self):
-        children_items = self._api_service.files().list(
-          q=f"\"{self.id}\" in parents").execute()['files']
+        """
+        Returns list of file inside the folder
+        """
+        children_items = self._api_service.files().list(  # pylint: disable=no-member
+            q=f"\"{self.id}\" in parents").execute()['files']
 
         for item in children_items:
             yield GoogleDriveFilesFactory.from_item(item)
@@ -122,6 +148,9 @@ class GoogleDriveFolder(GoogleDriveFile):
 
 
 class GoogleDriveDocument(GoogleDriveFile):
+    """
+    Represents Google Document
+    """
     mime_type = MIME_TYPES['document']
 
     def export(self, file_name, mime_type=MIME_TYPES['docx']):
@@ -129,7 +158,7 @@ class GoogleDriveDocument(GoogleDriveFile):
         Exports content of the file to format specified
         in the MimeType and writes it to the File
         """
-        export_bytes = self._api_service.files().export(
+        export_bytes = self._api_service.files().export(  # pylint: disable=no-member
             fileId=self.id, mimeType=mime_type
         ).execute()
 
@@ -140,7 +169,7 @@ class GoogleDriveDocument(GoogleDriveFile):
         media_body = MediaFileUpload(file_name, mimetype=mime_type,
                                      resumable=True)
 
-        self._api_service.files().update(
+        self._api_service.files().update(  # pylint: disable=no-member
             fileId=self.id,
             media_body=media_body
         ).execute()
@@ -175,7 +204,7 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
         :param range_name:
         :return:
         """
-        response = self._sheets_api_service.spreadsheets().values().get(
+        response = self._sheets_api_service.spreadsheets().values().get(  # pylint: disable=no-member
             spreadsheetId=self.id, range=range_name).execute()
         values = response.get('values', [])
 
@@ -186,7 +215,7 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
         Reads multiple ranges from the spreadsheet
         :param ranges_names: List of ranges to get data from
         """
-        response = self._sheets_api_service.spreadsheets().values().batchGet(
+        response = self._sheets_api_service.spreadsheets().values().batchGet(  # pylint: disable=no-member
             spreadsheetId=self.id, ranges=ranges_names).execute()
 
         value_ranges = response.get('valueRanges', [])
@@ -211,7 +240,7 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
             'data': value_ranges
         }
 
-        return self._sheets_api_service.spreadsheets().values().batchUpdate(
+        return self._sheets_api_service.spreadsheets().values().batchUpdate(  # pylint: disable=no-member
             spreadsheetId=self.id,
             body=body).execute()
 
@@ -220,7 +249,7 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
         Clears data in spreadsheet ranges
         :param ranges_names: Ranges to clear
         """
-        return self._sheets_api_service.spreadsheets().values().batchClear(
+        return self._sheets_api_service.spreadsheets().values().batchClear(  # pylint: disable=no-member
             spreadsheetId=self.id,
             body={"ranges": ranges_names}).execute()
 
@@ -234,7 +263,7 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
         Clears data on spreadsheet at the specified range
         :param range_name: Range to clear
         """
-        return self._sheets_api_service.spreadsheets().values().clear(
+        return self._sheets_api_service.spreadsheets().values().clear(  # pylint: disable=no-member
             spreadsheetId=self.id, range=range_name,
             body={"range": range_name}).execute()
 
@@ -245,7 +274,7 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
         :param data: Data to write
         :param value_input_option: How to recognize input data
         """
-        return self._sheets_api_service.spreadsheets().values().update(
+        return self._sheets_api_service.spreadsheets().values().update(  # pylint: disable=no-member
             spreadsheetId=self.id, range=range_name,
             body={"values": data}, valueInputOption=value_input_option
         ).execute()

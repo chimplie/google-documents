@@ -1,3 +1,7 @@
+"""
+Contains global settings for the google_documents like mime types etc.
+"""
+
 MIME_TYPES = {
     'folder': 'application/vnd.google-apps.folder',
     'docx': 'application/vnd.openxmlformats-officedocument.'
