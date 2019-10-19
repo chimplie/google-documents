@@ -2,6 +2,7 @@
 import json
 import os
 import re
+from warnings import warn
 
 import googleapiclient
 from google.oauth2 import service_account
@@ -107,6 +108,16 @@ class GoogleDriveDocumentManager:
         special_query_getters = {
             "folder": self._get_filter_folder_query
         }
+
+        if 'id' in kwargs:
+            # Filtering by id is not allowed,
+            # but we are clever, so will filter for another parameters
+            # and then just check the `id`
+            warn("Filtering by id is not allowed by Google API. Using `get` for getting file by id")
+            id_ = kwargs.pop('id')
+
+            files = self.filter(**kwargs)
+            return [file for file in files if file.id == id_]
 
         # Add mime type to search exactly files of the respective type
         # (Search only documents when we're calling

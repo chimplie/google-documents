@@ -3,7 +3,7 @@ from google_documents.entities.sheet import Sheet
 
 class SheetsManager:
     """
-    Provides managing of sheets in the Google Spreasheet
+    Provides managing of sheets in the Google Spreadsheet
     """
     _sheets_objects: [Sheet] = None
 
