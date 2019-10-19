@@ -26,16 +26,16 @@ class GoogleDriveSpreadsheetTestCase(TestCase):
 
     def test_create_delete(self):
         # Creating spreadsheet
-        spreadsheet = GoogleDriveSpreadsheet.objects().create(title="Test")
+        spreadsheet = GoogleDriveSpreadsheet.files().create(title="Test")
 
         try:
             # Should exist in Spreadsheets list
-            self.assertIn(spreadsheet, GoogleDriveSpreadsheet.objects().all())
+            self.assertIn(spreadsheet, GoogleDriveSpreadsheet.files().all())
         finally:
             # Deleting spreadsheet
             spreadsheet.delete()
 
-            self.assertNotIn(spreadsheet, GoogleDriveSpreadsheet.objects().filter(trashed=False))
+            self.assertNotIn(spreadsheet, GoogleDriveSpreadsheet.files().filter(trashed=False))
 
     def test_write_read_clear(self):
         # Writing data

@@ -16,16 +16,16 @@ class GoogleDriveFile(FromItemable, ApiCredentialsMixin):
 
     @property
     def _api_service(self):
-        return self.objects().get_api_service(
+        return self.files().get_api_service(
             credentials=self._api_credentials)
 
     @classmethod
     def get(cls, *args, **kwargs):
-        return cls.objects().get(*args, **kwargs)
+        return cls.files().get(*args, **kwargs)
 
     @classmethod
     def filter(cls, *args, **kwargs):
-        return cls.objects().filter(*args, **kwargs)
+        return cls.files().filter(*args, **kwargs)
 
     def __eq__(self, other):
         return self.id == other.id
@@ -149,7 +149,7 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
     mime_type = MIME_TYPES['spreadsheet']
 
     @classmethod
-    def objects(cls):
+    def files(cls):
         return GoogleDriveSpreadsheetManager(cls)
 
     @classmethod
@@ -166,7 +166,7 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
 
     @property
     def _sheets_api_service(self):
-        return self.objects()._sheets_api_service
+        return self.files()._sheets_api_service
 
     def read(self, range_name):
         """
@@ -255,7 +255,7 @@ class GoogleDriveSpreadsheet(GoogleDriveDocument):
 
     @classmethod
     def create(cls, *args, **kwargs):
-        return cls.objects().create(*args, **kwargs)
+        return cls.files().create(*args, **kwargs)
 
     def __getitem__(self, item):
         """

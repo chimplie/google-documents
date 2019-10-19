@@ -88,7 +88,7 @@ class SheetsManager:
 
     def batch_create(self, sheets: [Sheet]):
         """
-        Creates sheets in the Spreadsheet from the Sheet objects
+        Creates sheets in the Spreadsheet from the Sheet files
         """
         response = self.spreadsheet._sheets_api_service.\
             spreadsheets().batchUpdate(

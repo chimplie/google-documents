@@ -9,12 +9,12 @@ class ApiCredentialsMixin:
 
     @property
     def _default_api_credentials(self):
-        return self.objects().get_default_api_credentials()
+        return self.files().get_default_api_credentials()
 
     @property
     def _api_credentials(self):
         return self._custom_api_credentials or self._default_api_credentials
 
     @classmethod
-    def objects(cls):
+    def files(cls):
         return GoogleDriveDocumentManager(cls)

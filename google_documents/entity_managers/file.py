@@ -121,7 +121,7 @@ class GoogleDriveDocumentManager:
 
         # Add mime type to search exactly files of the respective type
         # (Search only documents when we're calling
-        # GoogleDocument.objects.filter(...)
+        # GoogleDocument.files.filter(...)
         if self.file_cls.mime_type:
             kwargs['mime_type'] = self.file_cls.mime_type
 

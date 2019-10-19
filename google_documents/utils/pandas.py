@@ -46,7 +46,7 @@ def data_frame_to_google_spreadsheet(
         data_frame_values_list.insert(0, data_frame_to_write.columns)
 
     # Initializing Google Spreadsheet
-    spreadsheet_manager = GoogleDriveSpreadsheet.objects()
+    spreadsheet_manager = GoogleDriveSpreadsheet.files()
 
     # Using custom credentials
     if google_service_account_file:
@@ -74,7 +74,7 @@ def google_spreadsheet_to_data_frame(
         first_column_as_index=False
 
 ):
-    spreadsheet_manager = GoogleDriveSpreadsheet.objects()
+    spreadsheet_manager = GoogleDriveSpreadsheet.files()
 
     # Using custom service account if needed
     if google_service_account_file:
