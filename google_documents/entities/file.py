@@ -28,7 +28,7 @@ class GoogleDriveFile(FromItemable, ApiCredentialsMixin):
         return cls.files().filter(*args, **kwargs)
 
     def __eq__(self, other):
-        return self.id == other.id
+        return self and other and self.id == other.id
 
     def __repr__(self):
         return f"<{self.__class__.__name__}: {self.id} - {self.name}>"
